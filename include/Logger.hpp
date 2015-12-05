@@ -31,7 +31,7 @@ namespace Logger {
     void log(const char* format, ...);
 
     inline void log(const std::string& str) {
-        log(str.c_str());
+        log(Level::INFO, str.c_str());
     }
 }
 

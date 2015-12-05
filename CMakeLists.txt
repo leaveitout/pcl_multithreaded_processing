@@ -12,8 +12,22 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-set(SOURCE_FILES src/main.cpp src/App.cpp include/App.hpp include/Logger.hpp src/Logger.cpp include/NI2Viewer.hpp
-        include/Buffer.hpp include/NI2Producer.hpp include/Timer.hpp include/CloudProcessor.hpp include/Definitions.hpp include/CloudRecorder.hpp include/CloudViewer.hpp include/CloudViewerSimple.hpp)
+set(SOURCE_FILES
+        src/main.cpp
+        src/App.cpp
+        include/App.hpp
+        include/Logger.hpp
+        src/Logger.cpp
+        include/Buffer.hpp
+        include/NI2Producer.hpp
+        include/Timer.hpp
+        include/Definitions.hpp
+        include/CloudViewer.hpp
+        include/Processor.hpp
+        src/NI2ImageViewer.cpp
+        include/NI2ImageViewer.hpp
+        src/NI2ImageViewer.cpp include/ProcessorProducer.hpp include/CloudImageViewer.hpp include/CloudAndImage.hpp include/MultiCloudAndImage.hpp include/CloudAndImageProducer.hpp include/MultiCloudAndImageProducer.hpp include/MultiCloud.hpp include/MultiCloudProducer.hpp include/MultiCloudViewer.hpp include/TimedCloud.hpp include/MultiTimedCloud.hpp include/MultiTimedCloudProducer.hpp include/CalibratorNode.hpp src/Palette.cpp include/Palette.hpp include/KeypointSorter.cpp include/KeypointSorter.hpp include/SquareDetector.cpp include/SquareDetector.hpp include/CameraId.hpp include/MultiTimedCloudViewer.hpp include/TimedCloudViewer.hpp include/IndexedTimedCloud.hpp include/IndexedTimedCloudViewer.hpp)
+
 include_directories(${CMAKE_HOME_DIRECTORY}/include)
 
 add_executable(pcl_multi_threaded_processing ${SOURCE_FILES})

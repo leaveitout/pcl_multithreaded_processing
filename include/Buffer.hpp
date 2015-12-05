@@ -17,14 +17,19 @@ private:
     std::condition_variable buff_empty_;
     Buffer(const Buffer&) = delete;
     Buffer& operator = (const Buffer&) = delete;
-    static const int TIME_OUT_MILLIS_DEFAULT = 100;
-    std::chrono::duration<int, std::milli> time_out_millis_;
+    static const int TIME_OUT_MS_DEFAULT = 10;
+    static const int DEFAULT_BUFF_SIZE = 100;
+    std::chrono::duration<int, std::milli> time_out_ms_;
 
 public:
-    Buffer(size_t buff_size = 1) :
-            time_out_millis_ (TIME_OUT_MILLIS_DEFAULT) {
+    Buffer(size_t buff_size, int time_out_ms) :
+            time_out_ms_ (time_out_ms) {
         std::lock_guard<std::mutex> lock(mutex_);
         buffer_.set_capacity(buff_size);
+    }
+
+    Buffer(size_t buff_size = DEFAULT_BUFF_SIZE) :
+            Buffer(buff_size, TIME_OUT_MS_DEFAULT) {
     }
 
     inline bool isFull() {
@@ -60,7 +65,7 @@ public:
 
     Type getFront() {
         std::unique_lock<std::mutex> lock(mutex_);
-        if(buff_empty_.wait_for(lock, time_out_millis_, [&](){ return !buffer_.empty();})) {
+        if(buff_empty_.wait_for(lock, time_out_ms_, [&](){ return !buffer_.empty();})) {
             Type front_item = buffer_.front();
             buffer_.pop_front();
             return front_item;

@@ -6,13 +6,19 @@
 
 #include <pcl/io/openni2_grabber.h>
 #include <Logger.hpp>
-#include <NI2Viewer.hpp>
-#include <NI2Producer.hpp>
+//#include <NI2Viewer.hpp>
+//#include <NI2Producer.hpp>
 #include <thread>
-#include <CloudProcessor.hpp>
-#include <CloudRecorder.hpp>
-#include <CloudViewer.hpp>
-#include <CloudViewerSimple.hpp>
+//#include <MultiCloudProducer.hpp>
+#include "MultiTimedCloudProducer.hpp"
+#include "TimedCloudViewer.hpp"
+#include "IndexedTimedCloudViewer.hpp"
+#include "CalibratorNode.hpp"
+//#include <MultiTimedCloudViewer.hpp>
+//#include <CloudViewer.hpp>
+//#include <NI2ImageViewer.hpp>
+//#include "CloudAndImageProducer.hpp"
+//#include "CloudImageViewer.hpp"
 
 typedef pcl::io::OpenNI2Grabber NI2Grabber;
 typedef pcl::io::openni2::OpenNI2DeviceManager NI2DeviceManager;
@@ -23,33 +29,38 @@ App::App(int argc, char **argv) {
 }
 
 int App::exec() {
-    auto deviceManager = NI2DeviceManager::getInstance ();
-    if (deviceManager->getNumOfConnectedDevices () > 0) {
-        auto device = deviceManager->getAnyDevice ();
-        Logger::log(Logger::INFO, "Device ID not set, using default device: %s\n", device->getStringID ().c_str());
-        NI2Grabber::Ptr grabber = boost::make_shared<NI2Grabber>(device->getStringID());
-//        NI2Producer<pcl::PointXYZRGBA> producer(grabber, 0, cloud_buffer, image_buffer);
-        NI2Producer<pcl::PointXYZRGBA> producer(grabber, 0);
-//        CloudRecorder<pcl::PointXYZRGBA> processor(producer.getCloudBuffer(), 0);
-        CloudViewer<pcl::PointXYZRGBA> viewer(producer.getCloudBuffer(), 0);
+    auto device_manager = NI2DeviceManager::getInstance ();
+    if (device_manager->getNumOfConnectedDevices () > 0) {
+//        auto device = device_manager->getAnyDevice ();
+//        Logger::log(Logger::INFO, "Device ID not set, using default device: %s\n", device->getStringID ().c_str());
+//        std::shared_ptr<NI2Grabber> grabber = std::make_shared<NI2Grabber>(device->getStringID());
+//        CloudAndImageProducer<pcl::PointXYZRGBA> producer(grabber, 0);
+//        CloudImageViewer<pcl::PointXYZRGBA> viewer(producer.getBuffer(), 0, "Camera 0");
+
+        std::vector<std::shared_ptr<pcl::Grabber>> grabbers;
+
+        size_t num_devices = device_manager->getNumOfConnectedDevices();
+        for (size_t i = 1; i <= num_devices; ++i) {
+            std::stringstream ss;
+            ss << '#' << i;
+            auto grabber = std::make_shared<NI2Grabber>(ss.str());
+            if(grabber->isRunning())
+                Logger::log(Logger::INFO, "Grabber is running\n");
+            grabbers.push_back(grabber);
+        }
+        MultiTimedCloudProducer<pcl::PointXYZRGBA> producer(grabbers, 0);
+        CalibratorNode<pcl::PointXYZRGBA> calibrator(producer.getBuffer(), 0, "Calibrator Node");
+//        MultiTimedCloudViewer<pcl::PointXYZRGBA> viewer(producer.getBuffer(), 0, "Viewer");
+//        TimedCloudViewer<pcl::PointXYZRGBA> viewer(calibrator.getOutputBuffer(), 0, "Calibrated Cloud Viewer");
+        IndexedTimedCloudViewer<pcl::PointXYZRGBA> viewer(calibrator.getOutputBuffer(), 0, "Indexed Cloud Viewer");
 
         producer.start();
+        calibrator.start();
         viewer.start();
-//        processor.start();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         producer.stop();
+        calibrator.stop();
         viewer.stop();
-//        processor.stop();
-
-//        grabber->start();
-
-//        std::unique_ptr<NI2Viewer<pcl::PointXYZRGBA>> viewer;
-//        viewer.reset(new NI2Viewer<pcl::PointXYZRGBA>(grabber));
-//        viewer->run();
-//
-//        grabber->stop();
     }
     else {
         Logger::log(Logger::INFO, "No compatible devices attached.\n");

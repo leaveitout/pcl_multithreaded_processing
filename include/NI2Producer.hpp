@@ -60,7 +60,7 @@ public:
         boost::function<void (const CloudConstPtr&)> cloud_callback = boost::bind(&NI2Producer::cloudCallback, this, _1);
         cloud_connection_ = grabber_->registerCallback (cloud_callback);
 
-        if(provides_images_ && grabber_->providesCallback<void (NI2ImagePtr)>()) {
+        if(provides_images_ && grabber_->providesCallback<void (const NI2ImagePtr&)>()) {
             image_buffer_ = std::make_shared<Buffer<NI2ImagePtr>>();
             boost::function<void(const NI2ImagePtr &)> image_callback = boost::bind(&NI2Producer::imageCallback, this, _1);
             image_connection_ = grabber_->registerCallback(image_callback);
@@ -86,11 +86,11 @@ public:
         Logger::log(Logger::INFO, "Producer done.\n");
     }
 
-    std::shared_ptr<Buffer<CloudConstPtr>> getCloudBuffer() {
+    std::shared_ptr<Buffer<CloudConstPtr>> getCloudBuffer() const {
         return cloud_buffer_;
     }
 
-    std::shared_ptr<Buffer<NI2ImagePtr>> getImageBuffer() {
+    std::shared_ptr<Buffer<NI2ImagePtr>> getImageBuffer() const {
         return image_buffer_;
     }
 };
